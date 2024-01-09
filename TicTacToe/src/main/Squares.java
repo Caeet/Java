@@ -3,125 +3,211 @@ package main;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Random;
 
-import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
+import javax.swing.JFrame;
 
 public class Squares implements MouseListener {
-	private ImageIcon X =  new ImageIcon("C:\\Users\\Guilherme Caetano\\eclipse-workspace\\TicTacToe\\res\\x.png");
-	private ImageIcon O = new ImageIcon("C:\\Users\\Guilherme Caetano\\eclipse-workspace\\TicTacToe\\res\\O.png");
-	private JLabel squares = new JLabel();
-	private boolean isSquareUsed = false;
-	private int x, y;
-	private JFrame frame;
 	
-	public Squares(JFrame frame, int x, int y)
-	{ 
-		
+	public boolean squareUtilizado = false;
+	public JLabel squares = new JLabel();
+	public String identificarSprite = "nulo";
+	public static ImageIcon x_icon = new ImageIcon("C:\\Users\\Guilherme Caetano\\Documents\\Meus Arquivos\\Eclipse Projetos\\TicTacToe\\res\\00000011.png");
+	public static ImageIcon o_icon = new ImageIcon("C:\\Users\\Guilherme Caetano\\Documents\\Meus Arquivos\\Eclipse Projetos\\TicTacToe\\res\\00000100.png");
+	public JFrame window;
+	public static int tentativasGame = 0;
+	public static boolean botJogando = false;
+	public static boolean isTrocarJogadaActived = false; 
+	
+	public Squares(JPanel panel, JFrame window)
+	{
 		squares.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		squares.addMouseListener(this);
-		frame.add(squares);
-		this.frame = frame;
-		
-		this.x = x;
-		this.y = y;
+		panel.add(squares);
+		this.window = window;
 	}
 
-	@Override
-	public void mouseClicked(MouseEvent e) {	
-		if(!isSquareUsed)
+	public void mouseClicked(MouseEvent e) {
+		if(isTrocarJogadaActived)
 		{
-			if(Main.checkPlayer == 0)
+			if(identificarSprite.equals("X"))
 			{
-				X.setImage(X.getImage().getScaledInstance(squares.getWidth(), squares.getHeight(), 1));
-				squares.setIcon(X);
-				Main.newPlayer();
-				Main.gameBox[x][y] = 1; 
+				squares.setIcon(o_icon);
+				identificarSprite = "O";
 			}
-			else if(Main.checkPlayer == 1)
+			else if(identificarSprite.equals("O"))
 			{
-				O.setImage(O.getImage().getScaledInstance(squares.getWidth(), squares.getHeight(), 1));
-				squares.setIcon(O);
-				Main.newPlayer();
-				Main.gameBox[x][y] = 2;
+				squares.setIcon(x_icon);
+				identificarSprite = "X";
 			}
 			
-			isSquareUsed = true;
+			verificarPartida();
+			isTrocarJogadaActived = false;
+		}
+		else if(!squareUtilizado && !botJogando)
+		{
+			tentativasGame++;
+			o_icon.setImage(o_icon.getImage().getScaledInstance(squares.getWidth(), squares.getHeight(), 1));
+			x_icon.setImage(x_icon.getImage().getScaledInstance(squares.getWidth(), squares.getHeight(), 1));
 			
-			for(int i = 0; i < 3; i++)
+			
+			if(Main.verificarJogador == 1)
 			{
-				if(Main.gameBox[i][0] == 1 && Main.gameBox[i][1] == 1 && Main.gameBox[i][2] == 1 || Main.gameBox[0][i] == 1 && Main.gameBox[1][i] == 1 && Main.gameBox[2][i] == 1)
-				{
-					JOptionPane.showMessageDialog(null, "O Jogador 'X' ganhou o game!");
-					frame.dispose();
-					resetVars();
-					Main.loadScreen();
-				}
-				else if(Main.gameBox[i][0] == 2 && Main.gameBox[i][1] == 2 && Main.gameBox[i][2] == 2 || Main.gameBox[0][i] == 2 && Main.gameBox[1][i] == 2 && Main.gameBox[2][i] == 2)
-				{
-					JOptionPane.showMessageDialog(null, "O Jogador 'O' ganhou o game!");
-					frame.dispose();
-					resetVars();
-					Main.loadScreen();
-				}
+				squares.setIcon(x_icon);
+				identificarSprite = "X";
+				Main.verificarJogador++;
+			}
+			else if(Main.verificarJogador == 2)
+			{
+				squares.setIcon(o_icon);
+				identificarSprite = "O";
+				Main.verificarJogador--;
 			}
 			
-			if(Main.gameBox[0][0] == 1 && Main.gameBox[1][1] == 1 && Main.gameBox[2][2] == 1 || Main.gameBox[0][2] == 1 && Main.gameBox[1][1] == 1 && Main.gameBox[2][0] == 1)
+			verificarPartida();
+			squareUtilizado = true;
+			
+			if(Main.isContraPC && Main.verificarJogador == 2)
 			{
-				JOptionPane.showMessageDialog(null, "O Jogador 'X' ganhou o game!");
-				frame.dispose();
-				resetVars();
-				Main.loadScreen();			
-			}
-			else if(Main.gameBox[0][0] == 2 && Main.gameBox[1][1] == 2 && Main.gameBox[2][2] == 2 || Main.gameBox[0][2] == 2 && Main.gameBox[1][1] == 2 && Main.gameBox[2][0] == 2)
-			{
-				JOptionPane.showMessageDialog(null, "O Jogador 'O' ganhou o game!");
-				frame.dispose();
-				resetVars();
-				Main.loadScreen();			
+				botJogando = true;
+				new Bot().start();
 			}
 			
-			Main.clicks++; 
-			
-			if(Main.clicks == 10)
+			if(tentativasGame == 9)
 			{
-				JOptionPane.showMessageDialog(null, "Infelizmente ninguém ganhou o jogo!");
-				frame.dispose();
-				resetVars();
-				Main.loadScreen();	
+				JOptionPane.showMessageDialog(null, "Nenhum dos jogadores ganhou a partida!");
+				window.dispose();
+				new Main();
+				tentativasGame = 0;
 			}
 		}
 	}
 	
-	public void resetVars()
+	public void jogadorDoisVencer()
+	{
+		JOptionPane.showMessageDialog(null, "O jogador dois venceu a partida!");
+		Main.PontosJ2++;
+		Main.verificarJogador = 1;
+		window.dispose();
+		tentativasGame = 0;
+		new Main();
+	}
+	
+	public void jogadorUmVencer()
+	{
+		JOptionPane.showMessageDialog(null, "O jogador um venceu a partida!");
+		Main.PontosJ1++;
+		Main.verificarJogador = 1;
+		window.dispose();
+		tentativasGame = 0;
+		new Main();
+	}
+
+	public void verificarPartida()
 	{
 		for(int i = 0; i < 3; i++)
 		{
-			for(int a = 0; a < 3; a++)
+			if(Main.squares[i][0].identificarSprite.equals("X"))
+			if(Main.squares[i][1].identificarSprite.equals("X"))
+			if(Main.squares[i][2].identificarSprite.equals("X"))
 			{
-				Main.gameBox[i][a] = 0;
+				jogadorUmVencer();
+				break;
+			}
+			
+			if(Main.squares[i][0].identificarSprite.equals("O"))
+			if(Main.squares[i][1].identificarSprite.equals("O"))
+			if(Main.squares[i][2].identificarSprite.equals("O"))
+			{
+				jogadorDoisVencer();
+				break;
+			}	
+			
+			if(Main.squares[0][i].identificarSprite.equals("O"))
+			if(Main.squares[1][i].identificarSprite.equals("O"))
+			if(Main.squares[2][i].identificarSprite.equals("O"))
+			{
+				jogadorDoisVencer();
+				break;
+			}	
+			
+			if(Main.squares[0][i].identificarSprite.equals("X"))
+			if(Main.squares[1][i].identificarSprite.equals("X"))
+			if(Main.squares[2][i].identificarSprite.equals("X"))
+			{
+				jogadorUmVencer();
+				break;
 			}
 		}
 		
-		Main.clicks = 0;
+		if(Main.squares[0][0].identificarSprite.equals("X"))
+		if(Main.squares[1][1].identificarSprite.equals("X"))
+		if(Main.squares[2][2].identificarSprite.equals("X"))
+		{
+			jogadorUmVencer();
+		}
+		
+		if(Main.squares[0][0].identificarSprite.equals("O"))
+		if(Main.squares[1][1].identificarSprite.equals("O"))
+		if(Main.squares[2][2].identificarSprite.equals("O")) 
+		{
+			jogadorDoisVencer();
+		}
+		
+		if(Main.squares[0][2].identificarSprite.equals("X"))
+		if(Main.squares[1][1].identificarSprite.equals("X"))
+		if(Main.squares[2][0].identificarSprite.equals("X"))
+		{
+			jogadorUmVencer();
+		}
+		
+		if(Main.squares[0][2].identificarSprite.equals("O"))
+		if(Main.squares[1][1].identificarSprite.equals("O"))
+		if(Main.squares[2][0].identificarSprite.equals("O"))
+		{
+			jogadorDoisVencer();
+		}
 	}
-
-	@Override
+	
+	public class Bot extends Thread {		
+		public void run()
+		{
+			o_icon.setImage(o_icon.getImage().getScaledInstance(squares.getWidth(), squares.getHeight(), 1));
+			try { Thread.sleep(1000); } catch (InterruptedException exception) {}
+			Random gerador = new Random();
+			int row = gerador.nextInt(3);
+			int col = gerador.nextInt(3);
+		
+			while(Main.squares[row][col].squareUtilizado == true)
+			{
+				row = gerador.nextInt(3);
+				col = gerador.nextInt(3);
+			}
+			
+			Main.squares[row][col].squares.setIcon(o_icon);
+			Main.squares[row][col].identificarSprite = "O";
+			Main.squares[row][col].squareUtilizado = true;
+			Squares.tentativasGame++;
+			Main.verificarJogador--;
+			Squares.botJogando = false;
+			verificarPartida();
+		}
+	}
+	
 	public void mousePressed(MouseEvent e) {
 	}
 
-	@Override
 	public void mouseReleased(MouseEvent e) {
 	}
 
-	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
 
-	@Override
 	public void mouseExited(MouseEvent e) {
 	}
 }
